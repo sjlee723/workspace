@@ -1,0 +1,39 @@
+﻿# Dockerfile.main
+
+# 공식 Python 런타임 이미지를 부모 이미지로 사용
+FROM python:3.9-slim
+
+# root 사용자로 변경
+USER root
+
+# 컨테이너 내 작업 디렉토리 설정
+WORKDIR /workspace
+
+# 필요한 의존성 패키지 설치
+RUN apt-get update && apt-get install -y \
+    sudo \
+    iptables \
+    firewalld \
+    default-libmysqlclient-dev \
+    default-mysql-client \
+    iputils-ping \
+    net-tools \
+    && rm -rf /var/lib/apt/lists/*
+
+# Python 패키지 설치
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# main.py 및 모듈을 컨테이너로 복사
+COPY main.py .
+COPY data_link_test/ data_link_test/
+COPY data_link/ data_link/
+
+# Python 모듈 경로 설정
+ENV PYTHONPATH "${PYTHONPATH}:/workspace"
+
+# 외부로 노출할 포트 설정
+EXPOSE 5000
+
+# 애플리케이션 실행 명령
+CMD ["python", "main.py"]

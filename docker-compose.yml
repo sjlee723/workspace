@@ -1,0 +1,126 @@
+# version: '3'
+# services:
+#   was_server:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.main
+#     privileged: true  # 권한을 부여합니다.
+#     networks:
+#       network_192:
+#         ipv4_address: 192.168.0.2
+#     ports:
+#       - "5002:5000"  # 호스트의 포트 5002를 컨테이너의 포트 5000으로 매핑합니다.
+#     environment:
+#       - host=192.168.0.151
+#       - user=seeya
+#       - password=seeya1@#
+#       - database=playground
+#       - port=3306
+#     entrypoint: ["python", "main.py"]
+#     command: ["--role", "was"]
+#     depends_on:
+#       - web_server
+#     volumes:
+#       - ./data_link/data/record:/workspace/data_link/data/record
+#     logging:
+#       driver: "json-file"
+#       options:
+#         max-size: "10m"
+#         max-file: "3"
+
+#   web_server:
+#     build:
+#       context: .
+#       dockerfile: Dockerfile.main
+#     privileged: true  # 권한을 부여합니다.
+#     networks:
+#       network_192:
+#         ipv4_address: 192.168.0.3
+#     environment:
+#       - WAS_SERVER_URL=http://192.168.0.2:5002
+#     ports:
+#       - "5001:5000"  # 호스트의 포트 5001을 컨테이너의 포트 5000으로 매핑합니다.
+#     entrypoint: ["python", "main.py"]
+#     command: ["--role", "web"]
+#     volumes:
+#       - ./data_link/data/record:/workspace/data_link/data/record
+#     logging:
+#       driver: "json-file"
+#       options:
+#         max-size: "10m"
+#         max-file: "3"
+
+# networks:
+#   network_192:
+#     driver: bridge
+#     ipam:
+#       config:
+#         - subnet: 192.168.0.0/24
+
+
+version: '3'
+services:
+  was_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.main
+    privileged: true
+    networks:
+      network_192:
+        ipv4_address: 192.168.0.2
+    ports:
+      - "5002:5000"
+    environment:
+      - host=192.168.0.151
+      - user=seeya
+      - password=seeya1@#
+      - database=playground
+      - port=3306
+    entrypoint: ["python", "main.py"]
+    command: ["--role", "was"]
+    depends_on:
+      - web_server
+    volumes:
+      - ./data_link/data/record:/workspace/data_link/data/record
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  web_server:
+    build:
+      context: .
+      dockerfile: Dockerfile.main
+    privileged: true
+    networks:
+      network_192:
+        ipv4_address: 192.168.0.3
+      network_172:
+        ipv4_address: 172.20.0.2
+    environment:
+      - WAS_SERVER_URL=http://192.168.0.2:5000
+    ports:
+      - "5001:5000"
+    entrypoint: ["python", "main.py"]
+    command: ["--role", "web"]
+    volumes:
+      - ./data_link/data/record:/workspace/data_link/data/record
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  network_192:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.0.0/24
+
+  network_172:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24
